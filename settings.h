@@ -4,9 +4,9 @@
 #define DEVICE_ID "EDIN"
 #define IZQUIERDA
 // Connection info.
-const char* ssid = "MANAGER";
-const char* password =  "M!n!g3r2019";
-const char* mqttServer = "192.168.1.34";
+const char* ssid = "T22";
+const char* password =  "12345678";
+const char* mqttServer = "192.168.0.105";
 const int mqttPort = 1883;
 char clientId[] = "d:" ORG ":" DEVICE_TYPE ":" DEVICE_ID;                                                 //Variable de Identificacion de Cliente para servicio de MQTT
 const char* channelName = "testing_tinyPico";
