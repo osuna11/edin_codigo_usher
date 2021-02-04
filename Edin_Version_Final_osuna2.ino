@@ -36,7 +36,32 @@ char dedo_meni[20];
 
 char Id_mano[10];
 int cantidad_movimiento;
+/////////////////////////////////////////Control de carga //////////////////////////////////////////////////
+// Interval between internal temperature reads
+unsigned long next_temp_read = 0;   // Next time step in milliseconds
+uint8_t temp_read_interval = 1000;  // This is in milliseconds
 
+unsigned long lastMillis_BAT;
+unsigned long lastMillis_LED;
+
+
+void bateria_estado(){
+   if (millis() - lastMillis_BAT > 60000) {
+    lastMillis_BAT = millis();
+    float battery =  tp.GetBatteryVoltage();
+    bool ischarging = tp.IsChargingBattery();
+    Serial.print(F("voltaje de la bateria: "));
+    Serial.println( battery);
+    Serial.print(F("La bateria esta cargando"));
+    Serial.println(ischarging);
+   }
+   
+   if (millis() - lastMillis_LED > 30000) {
+    lastMillis_LED = millis();
+    Serial.println("cambiando de Color de LED");
+    tp.DotStar_CycleColor(25);
+   }
+}
 //******************************************************************************FSM Settings
 bool mesgrecv = false;
 static enum {STATE_IDLE, STATE_PREGUNTA, STATE_TRANSMIT_RESPUESTA} fsm_state = STATE_IDLE;
@@ -707,6 +732,7 @@ void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, int repuest
 
 //************************************************************************************************************************************* SETUP ***************************************************************************************
 void loop() {
+  bateria_estado();
   switch(fsm_state){                                                                                         //Iniciamos el switch case
     
     case STATE_IDLE:                                                                                        //Que debe hacer la maquina cuando esta en estado de IDLE
