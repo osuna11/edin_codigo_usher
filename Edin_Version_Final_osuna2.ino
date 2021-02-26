@@ -1,4 +1,4 @@
-/**Attached interrupts
+ /**Attached interrupts
   *GPIO27   --->    SW_PUSH_MENIQUE
   *GPIO15   --->    SW_PUSH_ANULAR
   *GPIO14   --->    SW_PUSH_MEDIO
@@ -33,6 +33,7 @@ char dedo_p[20];
 char dedo_medi[20];
 char dedo_a[20];
 char dedo_meni[20];
+String repuesta;
 
 char Id_mano[10];
 int cantidad_movimiento;
@@ -54,13 +55,21 @@ void bateria_estado(){
     Serial.println( battery);
     Serial.print(F("La bateria esta cargando"));
     Serial.println(ischarging);
+     if (millis() - lastMillis_LED > 30000) {
+   if(battery>=4.51){
+   tp.DotStar_SetPixelColor( 26, 255, 0);
+   }
+   if(battery<=4.50 && battery>=4.00){
+   tp.DotStar_SetPixelColor( 255, 171, 0);
+   }
+    if(battery<=3.9 && battery>=3.7){
+   tp.DotStar_SetPixelColor( 255, 0, 0);
+   }
+  
+   }
    }
    
-   if (millis() - lastMillis_LED > 30000) {
-    lastMillis_LED = millis();
-    Serial.println("cambiando de Color de LED");
-    tp.DotStar_CycleColor(25);
-   }
+  
 }
 //******************************************************************************FSM Settings
 bool mesgrecv = false;
@@ -120,7 +129,8 @@ const int freq = 3000;
 const int resolution = 8;
 
 uint16_t  dutyCyclefull = 255;
-uint16_t  dutyCycleHalf = 95;
+uint16_t  dutyCycleHalf = 150;
+uint16_t  mediano = 180;
 uint16_t  dutyCycleLow = 15;
 uint16_t  initDutyCycle = 0;
 
@@ -164,6 +174,36 @@ void aPinMode(int pinNum, int pinDir) {
     gpio_config(&io_conf);
   } else pinMode(pinNum, pinDir);
 }
+void menos_indice(){
+  ledcWrite(menique.pwmChannel, initDutyCycle);
+   ledcWrite(pulgar.pwmChannel, initDutyCycle);
+    ledcWrite(anular.pwmChannel, initDutyCycle);
+     ledcWrite(medio.pwmChannel, initDutyCycle);
+  }
+  void menos_menique(){
+     ledcWrite(indice.pwmChannel, initDutyCycle);
+   ledcWrite(pulgar.pwmChannel, initDutyCycle);
+    ledcWrite(anular.pwmChannel, initDutyCycle);
+     ledcWrite(medio.pwmChannel, initDutyCycle);
+  }
+  void menos_medio(){
+     ledcWrite(menique.pwmChannel, initDutyCycle);
+   ledcWrite(pulgar.pwmChannel, initDutyCycle);
+    ledcWrite(anular.pwmChannel, initDutyCycle);
+     ledcWrite(indice.pwmChannel, initDutyCycle);
+  }
+  void menos_anular(){
+     ledcWrite(menique.pwmChannel, initDutyCycle);
+   ledcWrite(pulgar.pwmChannel, initDutyCycle);
+    ledcWrite(indice.pwmChannel, initDutyCycle);
+     ledcWrite(medio.pwmChannel, initDutyCycle);
+  }
+  void menos_pulgar(){
+     ledcWrite(menique.pwmChannel, initDutyCycle);
+   ledcWrite(indice.pwmChannel, initDutyCycle);
+    ledcWrite(anular.pwmChannel, initDutyCycle);
+     ledcWrite(medio.pwmChannel, initDutyCycle);
+  }
 void breakMotors(int stop_enableMotor_pin) {
   tp.DotStar_SetPixelColor( 255,0, 255   );
   Serial.println("enable pin LOW");
@@ -180,30 +220,56 @@ void enableMotors(int start_enableMotor_pin){
 void rampUp(int up_motor_channel){
   enableMotors(enable1Pin);
   tp.DotStar_SetPixelColor( 0, 255, 255   );
-  for(int dutyCycle = 190; dutyCycle <= 255; dutyCycle++){
+  for(int dutyCycle = 170; dutyCycle <= 255; dutyCycle++){
     // changing the LED brightness with PWM
     Serial.print("Set dutyCycle:");
     Serial.println(dutyCycle);
     // changing the LED brightness with PWM
     ledcWrite(up_motor_channel, dutyCycle);
-    delay(10);
+    delay(68);
   }
+  breakMotors(enable1Pin);     
+}
+void multi(int up_motor_channel){
+  enableMotors(enable1Pin); 
+    ledcWrite(up_motor_channel, mediano);
+    delay(500);
+    ledcWrite(up_motor_channel, initDutyCycle);
+ delay(500);
+ ledcWrite(up_motor_channel, mediano);
+    delay(500);
+    ledcWrite(up_motor_channel, initDutyCycle);
+ delay(500);
+     ledcWrite(up_motor_channel, dutyCyclefull);
+     delay(1500);
+  breakMotors(enable1Pin);     
+}
+
+void divi(int up_motor_channel){
+  enableMotors(enable1Pin); 
+    ledcWrite(up_motor_channel, dutyCyclefull);
+    delay(1500);
+    ledcWrite(up_motor_channel, initDutyCycle);
+ delay(100);
+    ledcWrite(up_motor_channel, mediano);
+ delay(1000);
   breakMotors(enable1Pin);     
 }
 
 void rampDown(int down_motor_channel){
   enableMotors(enable1Pin);
   tp.DotStar_SetPixelColor( 255, 255, 0  );
-  for(int dutyCycle = 255; dutyCycle >= 100; dutyCycle--){
+  for(int dutyCycle = 255; dutyCycle >= 160; dutyCycle--){
     // changing the LED brightness with PWM
     Serial.print("Set dutyCycle:");
     Serial.println(dutyCycle);
     // changing the LED brightness with PWM
     ledcWrite(down_motor_channel, dutyCycle);
-    delay(10);
+    delay(65);
   }
   breakMotors(enable1Pin);    
 }
+
 
 void motorClick(int motor_channel, int motor_time){
   enableMotors(enable1Pin);
@@ -217,142 +283,303 @@ void motorClick(int motor_channel, int motor_time){
   ledcWrite(motor_channel, dutyCycleHalf);
   breakMotors(enable1Pin);
 }
-
+void vibra_resultado(){
+  menos_pulgar();
+ enableMotors(enable1Pin);
+ Serial.print("signo igual");
+ Serial.println(pulgar.pwmChannel);
+ ledcWrite(pulgar.pwmChannel, dutyCyclefull );
+ delay(500);
+ ledcWrite(pulgar.pwmChannel, initDutyCycle);
+ delay(100);
+ ledcWrite(pulgar.pwmChannel, dutyCyclefull );
+  delay(500);
+  breakMotors(enable1Pin);
+}
 void mov_dedo_indice(int mov_intensidad, int mov_tipo,int mov_cantidad){
-    if(mov_tipo == 2){
+    if(mov_tipo == 1){
 Serial.print("tipo de vibracion 2");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(indice.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+   menos_indice();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampUp(indice.pwmChannel);
+ delay(10);  
 }
+ breakMotors(enable1Pin);
+
 }
-  if(mov_tipo==1){
-    Serial.print("tipo de vibracion 1");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(indice.pwmChannel, dutyCyclefull);
+  if(mov_tipo==2){
+    Serial.print("tipo de vibracion 2");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_indice();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  ledcWrite(indice.pwmChannel, dutyCyclefull );
+ delay(500);
+ ledcWrite(indice.pwmChannel, initDutyCycle);
+ delay(500);  
   }
+   breakMotors(enable1Pin);
   }
+  
   if(mov_tipo==3){
     Serial.print("tipo de vibracion 3");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(indice.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+          menos_indice();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampDown(indice.pwmChannel);
+ delay(10);  
   }
+   breakMotors(enable1Pin);
+  }
+
+  if(mov_tipo==4){
+    Serial.print("tipo de vibracion 4");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_indice();
+ enableMotors(enable1Pin);
+       multi(indice.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
+  }
+   if(mov_tipo==5){
+    Serial.print("tipo de vibracion 5");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_indice();
+ enableMotors(enable1Pin);
+       divi(indice.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
   }
 }
 
 void mov_dedo_menique(int mov_intensidad, int mov_tipo,int mov_cantidad){
   if(mov_tipo==1){
     Serial.print("tipo de vibracion 1");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(menique.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+           menos_menique();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  ledcWrite(menique.pwmChannel, dutyCyclefull );
+ delay(500);
+ ledcWrite(menique.pwmChannel, initDutyCycle);
+ delay(500);  
   }
+   breakMotors(enable1Pin);
   }
   if(mov_tipo==2){
     Serial.print("tipo de vibracion 2");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(menique.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+          menos_menique();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampUp(menique.pwmChannel);
+ delay(10);  
   }
+   breakMotors(enable1Pin);
   }
   if(mov_tipo==3){
     Serial.print("tipo de vibracion 3");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(menique.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+           menos_menique();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampDown(menique.pwmChannel);
+ delay(10);  
   }
+  breakMotors(enable1Pin);
+  }
+   if(mov_tipo==4){
+    Serial.print("tipo de vibracion 4");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_menique();
+ enableMotors(enable1Pin);
+       multi(menique.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
+  }
+  if(mov_tipo==5){
+    Serial.print("tipo de vibracion 5");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_menique();
+ enableMotors(enable1Pin);
+       divi(menique.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
   }
 }
 
 void mov_dedo_medio(int mov_intensidad, int mov_tipo,int mov_cantidad){
-  if(mov_tipo==1){
+    if(mov_tipo==1){
     Serial.print("tipo de vibracion 1");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(medio.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+           menos_medio();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  ledcWrite(medio.pwmChannel, dutyCyclefull );
+ delay(500);
+ ledcWrite(medio.pwmChannel, initDutyCycle);
+ delay(500);  
+      
   }
+   breakMotors(enable1Pin);
   }
   if(mov_tipo==2){
     Serial.print("tipo de vibracion 2");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(medio.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+           menos_medio();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampUp(medio.pwmChannel);
+ delay(10);  
   }
+   breakMotors(enable1Pin);
   }
   if(mov_tipo==3){
     Serial.print("tipo de vibracion 3");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(medio.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+       menos_medio();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampDown(medio.pwmChannel);
+ delay(10); 
   }
+   breakMotors(enable1Pin);
+  }
+   if(mov_tipo==4){
+    Serial.print("tipo de vibracion 4");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_medio();
+ enableMotors(enable1Pin);
+       multi(medio.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
+  }
+  if(mov_tipo==5){
+    Serial.print("tipo de vibracion 5");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_medio();
+ enableMotors(enable1Pin);
+       divi(medio.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
   }
 }
 
 void mov_dedo_anular(int mov_intensidad, int mov_tipo,int mov_cantidad){
   if(mov_tipo==1){
     Serial.print("tipo de vibracion 1");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(anular.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+             menos_anular();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  ledcWrite(anular.pwmChannel, dutyCyclefull );
+ delay(500);
+ ledcWrite(anular.pwmChannel, initDutyCycle);
+ delay(500); 
   }
+  breakMotors(enable1Pin);
   }
-  if(mov_tipo=2){
+  if(mov_tipo==2){
     Serial.print("tipo de vibracion 2");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(anular.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+              menos_anular();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampUp(anular.pwmChannel);
+ delay(10);  
   }
+  breakMotors(enable1Pin);
   }
   if(mov_tipo==3){
     Serial.print("tipo de vibracion 3");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(anular.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+            menos_anular();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampDown(anular.pwmChannel);
+ delay(10); 
   }
+   breakMotors(enable1Pin);
   }
+  if(mov_tipo==4){
+    Serial.print("tipo de vibracion 4");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_anular();
+ enableMotors(enable1Pin);
+       multi(anular.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
+  }
+   if(mov_tipo==5){
+    Serial.print("tipo de vibracion 5");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_anular();
+ enableMotors(enable1Pin);
+       divi(anular.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
+  }
+    
 }
 
 void mov_dedo_pulgar(int mov_intensidad, int mov_tipo,int mov_cantidad){
   if(mov_tipo==1){
     Serial.print("tipo de vibracion 1");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(pulgar.pwmChannel, dutyCyclefull);
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+     menos_pulgar();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  ledcWrite(pulgar.pwmChannel, dutyCyclefull );
+ delay(500);
+ ledcWrite(pulgar.pwmChannel, initDutyCycle);
+ delay(500); 
   }
+   breakMotors(enable1Pin);
   }
   if(mov_tipo==2){
-    Serial.print("tipo de vibracion 1");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(pulgar.pwmChannel, dutyCyclefull);
+    Serial.print("tipo de vibracion 2");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+               menos_pulgar();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampUp(pulgar.pwmChannel);
+ delay(10);  
   }
+  breakMotors(enable1Pin);
   }
   if(mov_tipo==3){
-    Serial.print("tipo de vibracion 1");
-for(vibraciones=0 ; vibraciones<=mov_cantidad; vibraciones++){
-  Serial.print("cantidad de vibraciones: ");
-          Serial.println(mov_cantidad);
-        ledcWrite(pulgar.pwmChannel, dutyCyclefull);
+    Serial.print("tipo de vibracion 3");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+            menos_pulgar();
+      enableMotors(enable1Pin);
+          Serial.println(vibraciones);
+  rampDown(pulgar.pwmChannel);
+ delay(10); 
   }
+  breakMotors(enable1Pin);
+  }
+  if(mov_tipo==4){
+    Serial.print("tipo de vibracion 4");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_pulgar();
+ enableMotors(enable1Pin);
+       multi(pulgar.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
+  }
+  if(mov_tipo==5){
+    Serial.print("tipo de vibracion 5");
+for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
+ menos_pulgar();
+ enableMotors(enable1Pin);
+       divi(pulgar.pwmChannel); 
+  }
+   breakMotors(enable1Pin);
   }
 }
-
 
 void operation (byte* payloadrsp){
   Serial.println(F("mensaje recibido de topico operacion"));
@@ -401,7 +628,7 @@ void operation (byte* payloadrsp){
   mov_dedo_menique(edin_operation_json["M_meni"][0].as<int>(),edin_operation_json["M_meni"][1].as<int>(),edin_operation_json["M_meni"][2].as<int>());
   
   }
-  else{Serial.println(F("NO mover el indice"));}
+  else{Serial.println(F("NO mover el menique"));}
   
    if(strcmp (dedo_medio,dedo_medi)==0){
   Serial.println(F("mover el medio"));
@@ -422,8 +649,9 @@ void operation (byte* payloadrsp){
   }
 
   tp.DotStar_Clear();
-  //fsm_state = STATE_PREGUNTA;       
+  fsm_state = STATE_PREGUNTA;       
 }
+
 
 void callback(char* topic, byte* payload, unsigned int length) {
   String payload_buff;
@@ -674,38 +902,85 @@ void check_for_connection (){
   }
 }
 //----------------------------------------------------------------------------------------------------------------------------------------//funcion para traducir mensaje a vibraciones.
-void traducir_a_vibraciones(int pwm_motor_channel, int pwm_motor_time_ms, int pwm_motor_effect){
-  Serial.println(F("DEBUG: empezandotraduccion a vibraciones"));
-  if(pwm_motor_effect = 1){
-    Serial.println(F("DEBUG: el mensaje contenia un rampup"));
-    rampUp(pwm_motor_channel);
-  }
-  if(pwm_motor_effect = 2){
-    Serial.println(F("DEBUG: el mensaje contenia un rampDown"));
-    rampDown(pwm_motor_channel);
-  }
-  if(pwm_motor_effect = 3){
-    Serial.println(F("DEBUG: el mensaje contenia un motorClick"));
-    motorClick(pwm_motor_channel, pwm_motor_time_ms);
-  }
-  else if (pwm_motor_effect = 4){
-    Serial.println(F("DEBUG: eso era toda la pregunta find de mensaje"));
-    findemensaje();
-  }
+//void traducir_a_vibraciones(int pwm_motor_channel, int pwm_motor_time_ms, int pwm_motor_effect){
+  //Serial.println(F("DEBUG: empezandotraduccion a vibraciones"));
+  //if(pwm_motor_effect = 1){
+    //Serial.println(F("DEBUG: el mensaje contenia un rampup"));
+   // rampUp(pwm_motor_channel);
+  //}
+  //if(pwm_motor_effect = 2){
+    //Serial.println(F("DEBUG: el mensaje contenia un rampDown"));
+   // rampDown(pwm_motor_channel);
+  //}
+  //if(pwm_motor_effect = 3){
+  //  Serial.println(F("DEBUG: el mensaje contenia un motorClick"));
+    //motorClick(pwm_motor_channel, pwm_motor_time_ms);
+  //}
+  //else if (pwm_motor_effect = 4){
+    //Serial.println(F("DEBUG: eso era toda la pregunta find de mensaje"));
+   // findemensaje();
+ // }
   
-  Serial.println(F("DEBUG: Cambiando de estado de pregunta a respuesta"));
-  fsm_state = STATE_TRANSMIT_RESPUESTA;
+  //Serial.println(F("DEBUG: Cambiando de estado de pregunta a respuesta"));
+  //fsm_state = STATE_TRANSMIT_RESPUESTA;
+//}
+void funciona_botones(){
+ Serial.println(F("btn1:"));
+   Serial.println(btn_1.numberKeyPresses);
+Serial.println(F("__---------------------------------"));
+Serial.println(F("btn2:"));
+   Serial.println(btn_2.numberKeyPresses);
+   Serial.println(F("__---------------------------------"));
+Serial.println(F("btn3:"));
+   Serial.println(btn_3.numberKeyPresses);
+   Serial.println(F("__---------------------------------"));
+Serial.println(F("btn4:"));
+   Serial.println(btn_4.numberKeyPresses); 
+ Serial.println(F("__---------------------------------"));
+    String repuesta=String("BTN_1  ")+btn_1.numberKeyPresses+String("BTN_2  ")+btn_2.numberKeyPresses+String("BTN_3  ")+btn_3.numberKeyPresses+String("BTN_4  ")+btn_4.numberKeyPresses;
+       Serial.println(repuesta);
 }
 
 void capturar_respuesta_de_botones(){
+ vibra_resultado();
   Serial.println(F("capturando la respuesta:"));
-  delay(100);
+   Serial.println(F("btn1:"));
+   Serial.println(btn_1.numberKeyPresses);
+Serial.println(F("__---------------------------------"));
+Serial.println(F("btn2:"));
+   Serial.println(btn_2.numberKeyPresses);
+   Serial.println(F("__---------------------------------"));
+Serial.println(F("btn3:"));
+   Serial.println(btn_3.numberKeyPresses);
+   Serial.println(F("__---------------------------------"));
+Serial.println(F("btn4:"));
+  delay(60000);
+  
+   Serial.println(btn_4.numberKeyPresses); 
+  unsigned long milis_viejos=0;
+  unsigned long milis_nuevos;
+      Serial.println(F("signo igual ahora:"));
+    
+     milis_nuevos=millis();
+     Serial.println(milis_nuevos);
+     if(btn_3.pressed != false){
+        if(milis_nuevos >=1000){
+           milis_nuevos=milis_viejos;
+            Serial.println(milis_nuevos);
+            Serial.println(F("enviando respuesta"));
+            String repuesta=String("BTN_1  ")+btn_1.numberKeyPresses+String("BTN_2  ")+btn_2.numberKeyPresses+String("BTN_3  ")+btn_3.numberKeyPresses+String("BTN_4  ")+btn_4.numberKeyPresses;
+            Serial.println(repuesta);
+            fsm_state = STATE_TRANSMIT_RESPUESTA;
+            
+            }
+            
+}
 
 }
 
-void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, int repuesta){
+void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, String repuesta){
   //String response = ("{    "idOperation":12,    "gloveCode":"1941238-1458400",    "answer":2 })";
-  const int capacity = JSON_OBJECT_SIZE(4);
+  const int capacity = JSON_OBJECT_SIZE(16);
   StaticJsonDocument<capacity> edin_json_response_doc;
   // create an object
   JsonObject object = edin_json_response_doc.to<JsonObject>();
@@ -713,12 +988,14 @@ void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, int repuest
   object["idOperation"]   = idoperacion;
   object["gloveCode"]     = idguante;
   object["answer"]        = repuesta;
+  Serial.println(repuesta);
       
   String output;
   size_t n = serializeJson(object, output);                                                                  //SAve CPU cycles by calculatinf the size.
 
   Serial.println(F("publishing device response to server:"));
   Serial.println(output);
+  
 
   if (!client.connected()) {
     check_for_connection();
@@ -755,16 +1032,18 @@ void loop() {
     case STATE_PREGUNTA:
          Serial.println(F("Switch case state Pregunta: PREGUNTA"));
          delay(500);
-         traducir_a_vibraciones(motor_channel, motor_time, motor_effect);
+          btn_1.numberKeyPresses=0;
+   btn_2.numberKeyPresses=0;
+    btn_3.numberKeyPresses=0;
+     btn_4.numberKeyPresses=0;
+        capturar_respuesta_de_botones(); 
                            
     break;
     
     case STATE_TRANSMIT_RESPUESTA:
         Serial.println(F("Switch case state: RESPUESTA"));
         //insertar a qui un While
-        capturar_respuesta_de_botones(); 
-
-        publicar_la_respuesta_a_servidor(idOperation, gloveCode, answer);
+        publicar_la_respuesta_a_servidor(idOperation, gloveCode, repuesta);
                 
         fsm_state = STATE_IDLE;
     break;
