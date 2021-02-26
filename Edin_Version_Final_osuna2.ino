@@ -211,7 +211,7 @@ void breakMotors(int stop_enableMotor_pin) {
 }
 
 void enableMotors(int start_enableMotor_pin){
-  tp.DotStar_SetPixelColor( 255, 255, 255   );
+  tp.DotStar_SetPixelColor( 6, 14, 255   );
   Serial.println("enable pin HIGH");
   digitalWrite(start_enableMotor_pin, HIGH);
 }
@@ -285,14 +285,30 @@ void motorClick(int motor_channel, int motor_time){
 }
 void vibra_resultado(){
   menos_pulgar();
+  menos_medio();
+  menos_indice();
+  menos_menique();
+  menos_anular();
  enableMotors(enable1Pin);
  Serial.print("signo igual");
  Serial.println(pulgar.pwmChannel);
  ledcWrite(pulgar.pwmChannel, dutyCyclefull );
+  ledcWrite(anular.pwmChannel, dutyCyclefull );
+   ledcWrite(medio.pwmChannel, dutyCyclefull );
+    ledcWrite(indice.pwmChannel, dutyCyclefull );
+     ledcWrite(menique.pwmChannel, dutyCyclefull );
  delay(500);
  ledcWrite(pulgar.pwmChannel, initDutyCycle);
+ ledcWrite(medio.pwmChannel, initDutyCycle);
+ ledcWrite(indice.pwmChannel, initDutyCycle);
+ ledcWrite(anular.pwmChannel, initDutyCycle);
+ ledcWrite(menique.pwmChannel, initDutyCycle);
  delay(100);
- ledcWrite(pulgar.pwmChannel, dutyCyclefull );
+  ledcWrite(pulgar.pwmChannel, dutyCyclefull );
+  ledcWrite(anular.pwmChannel, dutyCyclefull );
+   ledcWrite(medio.pwmChannel, dutyCyclefull );
+    ledcWrite(indice.pwmChannel, dutyCyclefull );
+     ledcWrite(menique.pwmChannel, dutyCyclefull );
   delay(500);
   breakMotors(enable1Pin);
 }
