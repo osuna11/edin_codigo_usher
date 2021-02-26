@@ -940,8 +940,13 @@ Serial.println(F("btn4:"));
     String repuesta=String("BTN_1  ")+btn_1.numberKeyPresses+String("BTN_2  ")+btn_2.numberKeyPresses+String("BTN_3  ")+btn_3.numberKeyPresses+String("BTN_4  ")+btn_4.numberKeyPresses;
        Serial.println(repuesta);
 }
-
+void milis_prueba(){
+  delay(10000);
+String repuesta=String("BTN_1  ")+btn_1.numberKeyPresses+String("BTN_2  ")+btn_2.numberKeyPresses+String("BTN_3  ")+btn_3.numberKeyPresses+String("BTN_4  ")+btn_4.numberKeyPresses;
+Serial.println(repuesta);
+}
 void capturar_respuesta_de_botones(){
+   Serial.println(F("signo igual ahora:"));
  vibra_resultado();
   Serial.println(F("capturando la respuesta:"));
    Serial.println(F("btn1:"));
@@ -954,16 +959,16 @@ Serial.println(F("btn3:"));
    Serial.println(btn_3.numberKeyPresses);
    Serial.println(F("__---------------------------------"));
 Serial.println(F("btn4:"));
-  delay(60000);
+  Serial.println(btn_4.numberKeyPresses); 
+  delay(10000);
   
-   Serial.println(btn_4.numberKeyPresses); 
   unsigned long milis_viejos=0;
   unsigned long milis_nuevos;
-      Serial.println(F("signo igual ahora:"));
-    
-     milis_nuevos=millis();
-     Serial.println(milis_nuevos);
+      
      if(btn_3.pressed != false){
+      milis_nuevos=millis();
+      btn_3.pressed=false;
+     Serial.println(milis_nuevos);
         if(milis_nuevos >=1000){
            milis_nuevos=milis_viejos;
             Serial.println(milis_nuevos);
@@ -995,6 +1000,7 @@ void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, String repu
 
   Serial.println(F("publishing device response to server:"));
   Serial.println(output);
+  Serial.println(repuesta);
   
 
   if (!client.connected()) {
@@ -1036,7 +1042,8 @@ void loop() {
    btn_2.numberKeyPresses=0;
     btn_3.numberKeyPresses=0;
      btn_4.numberKeyPresses=0;
-        capturar_respuesta_de_botones(); 
+       capturar_respuesta_de_botones(); 
+       // milis_prueba();
                            
     break;
     
