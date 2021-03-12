@@ -22,6 +22,7 @@
 #include <TinyPICO.h>
 #include "settings.h"
 
+
 TinyPICO tp = TinyPICO();
 
 //*****************************************************************************Definicion de Variables Globales
@@ -44,8 +45,27 @@ uint8_t temp_read_interval = 1000;  // This is in milliseconds
 
 unsigned long lastMillis_BAT;
 unsigned long lastMillis_LED;
+ unsigned long current_millis=0;
+ int estado=digitalRead(14);
+ unsigned long Last_Normal_Reset_Millis;                                                             //Variable para llevar conteo del tiempo desde la ultima publicacion
+unsigned long Last_Update_Millis; 
 
 
+
+
+//void NormalReset() {
+ // if (millis() - Last_Normal_Reset_Millis > 60 * 60 * Universal_1_sec_Interval) {
+  //  hora++;
+   // if (hora > 24) {
+    //  msg = ("24h Normal Reset");
+     // VBat = 4.2; //Bateria();
+     // publishRF_ID_Manejo();        //publishRF_ID_Manejo (String IDModulo,String MSG,float vValue, int fail,String Tstamp)
+     // hora = 0;
+     // ESP.restart();
+   // }
+   // Last_Normal_Reset_Millis = millis(); //Actulizar la ultima hora de envio
+  //}
+//}
 void bateria_estado(){
    if (millis() - lastMillis_BAT > 60000) {
     lastMillis_BAT = millis();
@@ -99,6 +119,7 @@ boton btn_1 = {27, 0, false};
 void IRAM_ATTR isr_btn1(){
   btn_1.numberKeyPresses += 1;
   btn_1.pressed = true;
+   
 }
 
 void IRAM_ATTR isr_btn2(){
@@ -109,6 +130,35 @@ void IRAM_ATTR isr_btn2(){
 void IRAM_ATTR isr_btn3(){
   btn_3.numberKeyPresses += 1;
   btn_3.pressed = true;
+
+ unsigned long t_inicio=0;
+  unsigned long t_inicio2=0;
+  unsigned long mili2;
+  unsigned long calculo;
+  Serial.println(estado);
+if(estado!=false){
+  t_inicio=current_millis;
+  Serial.println("Button press");
+  }
+  if(estado==1  && t_inicio>=30000){
+     Serial.println("Button long pressed");
+   Serial.println(F("enviando respuesta"));
+  }
+  
+
+   
+        
+     //     if(button_pressduration >=t_presionado){
+       //     Serial.println(F("enviando respuesta"));
+         //   String resultado=String("BTN_1")+btn_1.numberKeyPresses+String("BTN_2")+btn_2.numberKeyPresses+String("BTN_3")+btn_3.numberKeyPresses+String("BTN_4")+btn_4.numberKeyPresses;
+           // resultado=repuesta;
+            //Serial.println(repuesta);
+            //fsm_state = STATE_TRANSMIT_RESPUESTA;
+            
+            //}
+            
+
+    
 }
 
 void IRAM_ATTR isr_btn4(){
@@ -599,7 +649,6 @@ for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
 
 void operation (byte* payloadrsp){
   Serial.println(F("mensaje recibido de topico operacion"));
-  tp.DotStar_SetPixelColor( 0xFFC900 );
   const int capacity = JSON_OBJECT_SIZE(208);
   StaticJsonDocument<capacity> edin_operation_json;
   
@@ -665,7 +714,7 @@ void operation (byte* payloadrsp){
   }
 
   tp.DotStar_Clear();
-  fsm_state = STATE_PREGUNTA;       
+ fsm_state = STATE_PREGUNTA;       
 }
 
 
@@ -863,8 +912,12 @@ void setup() {
   WiFi.begin(ssid, password); // Connect to WiFi.
   if(WiFi.waitForConnectResult() != WL_CONNECTED) {
       Serial.println("Couldn't connect to WiFi.");
+      tp.DotStar_SetPixelColor( 255, 255, 255);
       while(1) delay(100);
   }
+   
+  
+    
   lastReconnectAttempt = 0;
   Serial.println(F("Finalizing Setup"));                                                                  //enviamos un mensaje de depuracion
   configuration_json();
@@ -906,6 +959,8 @@ void findemensaje(){
 //----------------------------------------------------------------------------------------------------------------------------------------//Funciones de MQTT
 void check_for_connection (){
   if (!client.connected()) {
+    Serial.println(F("reconectando"));
+     tp.DotStar_SetPixelColor( 239, 250, 0);
     long now = millis();
     if (now - lastReconnectAttempt > 5000) { // Try to reconnect.
       lastReconnectAttempt = now;
@@ -953,59 +1008,50 @@ Serial.println(F("btn3:"));
 Serial.println(F("btn4:"));
    Serial.println(btn_4.numberKeyPresses); 
  Serial.println(F("__---------------------------------"));
+ delay(10000);
     String repuesta=String("BTN_1  ")+btn_1.numberKeyPresses+String("BTN_2  ")+btn_2.numberKeyPresses+String("BTN_3  ")+btn_3.numberKeyPresses+String("BTN_4  ")+btn_4.numberKeyPresses;
+    
        Serial.println(repuesta);
 }
 void milis_prueba(){
-  delay(10000);
-String repuesta=String("BTN_1  ")+btn_1.numberKeyPresses+String("BTN_2  ")+btn_2.numberKeyPresses+String("BTN_3  ")+btn_3.numberKeyPresses+String("BTN_4  ")+btn_4.numberKeyPresses;
-Serial.println(repuesta);
+   current_millis=millis();
+Serial.println(current_millis);
+ unsigned long t_inicio=0;
+  unsigned long t_inicio2=0; 
+  unsigned long res;
+  int segundos=0;
+  if(current_millis>=(t_inicio2+1000)){
+    t_inicio2=current_millis;
+    segundos=current_millis/1000;
+    Serial.println(segundos);
+    }
+  //t_inicio=current_millis;
+  //Serial.println(t_inicio);
+  //res= current_millis-t_inicio;
+  //Serial.println(F("respuesta de milis"));
+ // Serial.println(res);
+
 }
 void capturar_respuesta_de_botones(){
    Serial.println(F("signo igual ahora:"));
  vibra_resultado();
-  Serial.println(F("capturando la respuesta:"));
-   Serial.println(F("btn1:"));
-   Serial.println(btn_1.numberKeyPresses);
-Serial.println(F("__---------------------------------"));
-Serial.println(F("btn2:"));
-   Serial.println(btn_2.numberKeyPresses);
-   Serial.println(F("__---------------------------------"));
-Serial.println(F("btn3:"));
-   Serial.println(btn_3.numberKeyPresses);
-   Serial.println(F("__---------------------------------"));
-Serial.println(F("btn4:"));
-  Serial.println(btn_4.numberKeyPresses); 
   delay(10000);
-  
-  unsigned long milis_viejos=0;
-  unsigned long milis_nuevos;
-      
-     if(btn_3.pressed != false){
-      milis_nuevos=millis();
-      btn_3.pressed=false;
-     Serial.println(milis_nuevos);
-        if(milis_nuevos >=1000){
-           milis_nuevos=milis_viejos;
-            Serial.println(milis_nuevos);
-            Serial.println(F("enviando respuesta"));
-            String repuesta=String("BTN_1  ")+btn_1.numberKeyPresses+String("BTN_2  ")+btn_2.numberKeyPresses+String("BTN_3  ")+btn_3.numberKeyPresses+String("BTN_4  ")+btn_4.numberKeyPresses;
-            Serial.println(repuesta);
-            fsm_state = STATE_TRANSMIT_RESPUESTA;
-            
-            }
-            
-}
+    repuesta=String("BTN_1")+btn_1.numberKeyPresses+String("BTN_2")+btn_2.numberKeyPresses+String("BTN_3")+btn_3.numberKeyPresses+String("BTN_4")+btn_4.numberKeyPresses;
+    Serial.println(F("respuesta de una"));
+    Serial.println(repuesta);
+  fsm_state = STATE_TRANSMIT_RESPUESTA;
 
 }
 
-void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, String repuesta){
+void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, String answer){
+   Serial.println(repuesta);
   //String response = ("{    "idOperation":12,    "gloveCode":"1941238-1458400",    "answer":2 })";
-  const int capacity = JSON_OBJECT_SIZE(16);
+  const int capacity = JSON_OBJECT_SIZE(250);
   StaticJsonDocument<capacity> edin_json_response_doc;
   // create an object
   JsonObject object = edin_json_response_doc.to<JsonObject>();
-
+answer=repuesta;
+  Serial.println(repuesta); 
   object["idOperation"]   = idoperacion;
   object["gloveCode"]     = idguante;
   object["answer"]        = repuesta;
@@ -1026,11 +1072,14 @@ void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, String repu
     Serial.println(F("device Publish ok"));
   }else {
     Serial.println(F("device Publish failed:"));
+    tp.DotStar_SetPixelColor( 255, 255, 255);
   }
 }
 
 //************************************************************************************************************************************* SETUP ***************************************************************************************
 void loop() {
+     
+  current_millis=millis();
   bateria_estado();
   switch(fsm_state){                                                                                         //Iniciamos el switch case
     
@@ -1058,8 +1107,10 @@ void loop() {
    btn_2.numberKeyPresses=0;
     btn_3.numberKeyPresses=0;
      btn_4.numberKeyPresses=0;
-       capturar_respuesta_de_botones(); 
-       // milis_prueba();
+     
+     // funciona_botones();
+      capturar_respuesta_de_botones(); 
+      //  milis_prueba();
                            
     break;
     
