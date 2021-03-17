@@ -653,7 +653,7 @@ for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
 }
 
 void operation (byte* payloadrsp){
-  Serial.println(F("mensaje recibido de topico operacion"));
+  Serial.println(F("mensaje   recibido de topico operacion"));
   const int capacity = JSON_OBJECT_SIZE(208);
   StaticJsonDocument<capacity> edin_operation_json;
   
@@ -804,7 +804,7 @@ void setup() {
   //Setting up Button 1
   Serial.print("Setting pin button:");
   pinMode(btn_1.PIN, INPUT_PULLUP);
-  attachInterrupt(btn_1.PIN, isr_btn1, CHANGE);
+  attachInterrupt(btn_1.PIN, isr_btn1, FALLING);
   //Setting up Button #2
   Serial.print("Setting pin button:");
   Serial.println(btn_2.PIN);
@@ -1040,16 +1040,14 @@ void milis_prueba(){
 void capturar_respuesta_de_botones(){
    Serial.println(F("signo igual ahora:"));
  vibra_resultado();
-  delay(10000);
+  delay(15000);
     repuesta=String("BTN_1")+btn_1.numberKeyPresses+String("BTN_2")+btn_2.numberKeyPresses+String("BTN_3")+btn_3.numberKeyPresses+String("BTN_4")+btn_4.numberKeyPresses;
     Serial.println(F("respuesta de una"));
-    Serial.println(repuesta);
   fsm_state = STATE_TRANSMIT_RESPUESTA;
 
 }
 
 void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, String answer){
-   Serial.println(repuesta);
   //String response = ("{    "idOperation":12,    "gloveCode":"1941238-1458400",    "answer":2 })";
   const int capacity = JSON_OBJECT_SIZE(250);
   StaticJsonDocument<capacity> edin_json_response_doc;
