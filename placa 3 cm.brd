@@ -33,7 +33,7 @@
 <layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="no" active="yes"/>
 <layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="28" name="bValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
@@ -46,10 +46,10 @@
 <layer number="36" name="bGlue" color="7" fill="5" visible="no" active="yes"/>
 <layer number="37" name="tTest" color="7" fill="1" visible="no" active="yes"/>
 <layer number="38" name="bTest" color="7" fill="1" visible="no" active="yes"/>
-<layer number="39" name="tKeepout" color="4" fill="11" visible="yes" active="yes"/>
-<layer number="40" name="bKeepout" color="1" fill="11" visible="yes" active="yes"/>
-<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
-<layer number="42" name="bRestrict" color="1" fill="10" visible="yes" active="yes"/>
+<layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="yes"/>
+<layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="yes"/>
+<layer number="42" name="bRestrict" color="1" fill="10" visible="no" active="yes"/>
 <layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="yes"/>
 <layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
 <layer number="45" name="Holes" color="7" fill="1" visible="no" active="yes"/>
@@ -58,8 +58,8 @@
 <layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
 <layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
@@ -191,11 +191,20 @@
 <dimension x1="32.7406" y1="0.0254" x2="32.7914" y2="17.78" x3="40.84320625" y3="8.8795875" textsize="1.778" layer="47"/>
 <dimension x1="26.5" y1="25" x2="-9.5" y2="25" x3="8.5" y3="28.5" textsize="1.778" layer="27"/>
 <dimension x1="-15" y1="20" x2="-15" y2="-16" x3="-21.5" y3="2" textsize="1.778" layer="27"/>
-<text x="1.778" y="-12.446" size="0.8128" layer="21">Desogned in GT by </text>
 <wire x1="-9.246" y1="19.018" x2="-9.246" y2="-12.952" width="0" layer="20"/>
 <wire x1="-9.246" y1="-12.952" x2="26.3516" y2="-12.952" width="0" layer="20"/>
 <wire x1="26.3516" y1="-12.952" x2="26.3516" y2="19.018" width="0" layer="20"/>
 <wire x1="26.3516" y1="19.018" x2="-9.246" y2="19.018" width="0" layer="20"/>
+<text x="-1.558615625" y="3.17013125" size="0.4064" layer="25">Meñique</text>
+<text x="-1.260640625" y="6.978903125" size="0.4064" layer="25">Medio</text>
+<text x="-1.138571875" y="9.454278125" size="0.4064" layer="25">Anular</text>
+<text x="-0.9438125" y="12.121253125" size="0.4064" layer="25">Indice</text>
+<text x="-1.19849375" y="14.518534375" size="0.4064" layer="25">Pulgar</text>
+<text x="-2.03144375" y="-1.330490625" size="0.4064" layer="25">Meñique</text>
+<text x="-1.91628125" y="-3.29015" size="0.4064" layer="25">Anular</text>
+<text x="-1.16853125" y="-5.498765625" size="0.4064" layer="25">medio</text>
+<text x="-1.543059375" y="-9.034753125" size="0.4064" layer="25">indice</text>
+<text x="19.704346875" y="-11.9725375" size="0.4064" layer="25">EDIN COMPANY GT</text>
 </plain>
 <libraries>
 <library name="TinyPICO_NANO_Eagle">
@@ -847,16 +856,16 @@ Note, that not all DRC settings must be set by the manufacturer. Several can be 
 <signals>
 <signal name="GND">
 <polygon width="0.2032" layer="16">
-<vertex x="26.385" y="20.415"/>
-<vertex x="26.385" y="-16.635"/>
+<vertex x="26.282690625" y="20.39694375"/>
+<vertex x="26.282690625" y="-16.65305625"/>
 <vertex x="-10.27" y="-16.635"/>
 <vertex x="-10.27" y="20.415"/>
 </polygon>
 <polygon width="0.254" layer="1">
 <vertex x="-10.414" y="20.574"/>
 <vertex x="-10.414" y="-17.526"/>
-<vertex x="26.416" y="-17.526"/>
-<vertex x="26.416" y="20.574"/>
+<vertex x="26.322759375" y="-17.712584375"/>
+<vertex x="26.322759375" y="20.387415625"/>
 </polygon>
 <contactref element="U$1" pad="GND$2"/>
 <contactref element="U$1" pad="GND$4"/>
@@ -1189,13 +1198,12 @@ Note, that not all DRC settings must be set by the manufacturer. Several can be 
 <wire x1="13.404" y1="-8.229" x2="12.039" y2="-8.229" width="0.2032" layer="16"/>
 <wire x1="12.039" y1="-8.229" x2="11.43" y2="-7.62" width="0.2032" layer="16"/>
 <wire x1="11.43" y1="-7.62" x2="11.43" y2="-2.794" width="0.2032" layer="16"/>
-<wire x1="11.43" y1="-2.794" x2="11.684" y2="-2.54" width="0.2032" layer="16"/>
-<wire x1="11.684" y1="-2.54" x2="12.446" y2="-1.778" width="0.2032" layer="16"/>
+<wire x1="11.43" y1="-2.794" x2="12.446" y2="-1.778" width="0.2032" layer="16"/>
 <wire x1="12.446" y1="-1.778" x2="20.32" y2="-1.778" width="0.2032" layer="16"/>
 <wire x1="20.32" y1="-1.778" x2="21.082" y2="-1.016" width="0.2032" layer="16"/>
-<wire x1="21.082" y1="-1.016" x2="21.082" y2="8.636" width="0.2032" layer="16"/>
-<via x="21.082" y="8.636" extent="1-16" drill="0.3048"/>
-<wire x1="21.082" y1="8.636" x2="21.082" y2="9.144" width="0.2032" layer="1"/>
+<wire x1="21.082" y1="-1.016" x2="21.082" y2="8.9477875" width="0.2032" layer="16"/>
+<via x="21.082" y="8.9477875" extent="1-16" drill="0.3048"/>
+<wire x1="21.082" y1="8.9477875" x2="21.082" y2="9.144" width="0.2032" layer="1"/>
 <wire x1="21.082" y1="9.144" x2="20.828" y2="9.398" width="0.2032" layer="1"/>
 <wire x1="20.828" y1="9.398" x2="15.24" y2="9.398" width="0.2032" layer="1"/>
 <wire x1="15.24" y1="9.398" x2="15.24" y2="11.8699" width="0.2032" layer="1"/>
@@ -1350,7 +1358,8 @@ Note, that not all DRC settings must be set by the manufacturer. Several can be 
 <wire x1="21.59" y1="9.398" x2="21.59" y2="10.668" width="0.2032" layer="16"/>
 <wire x1="21.59" y1="10.668" x2="21.336" y2="10.922" width="0.2032" layer="16"/>
 <via x="21.336" y="10.922" extent="1-16" drill="0.3048"/>
-<wire x1="21.336" y1="10.922" x2="21.5279" y2="11.932" width="0" layer="19" extent="1-16"/>
+<wire x1="21.5279" y1="11.932" x2="21.336" y2="11.932" width="0.254" layer="1"/>
+<wire x1="21.336" y1="11.932" x2="21.336" y2="10.922" width="0.254" layer="1"/>
 </signal>
 <signal name="GPIO33">
 <contactref element="U$1" pad="IO33"/>
