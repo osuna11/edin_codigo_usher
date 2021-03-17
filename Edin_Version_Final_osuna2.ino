@@ -35,6 +35,7 @@ char dedo_medi[20];
 char dedo_a[20];
 char dedo_meni[20];
 String repuesta;
+int segundos=0;
 
 char Id_mano[10];
 int cantidad_movimiento;
@@ -340,31 +341,35 @@ void vibra_resultado(){
   menos_menique();
   menos_anular();
  enableMotors(enable1Pin);
- Serial.print("signo igual");
- Serial.println(pulgar.pwmChannel);
- ledcWrite(pulgar.pwmChannel, dutyCyclefull );
-  ledcWrite(anular.pwmChannel, dutyCyclefull );
-   ledcWrite(medio.pwmChannel, dutyCyclefull );
-    ledcWrite(indice.pwmChannel, dutyCyclefull );
-     ledcWrite(menique.pwmChannel, dutyCyclefull );
- delay(500);
- ledcWrite(pulgar.pwmChannel, initDutyCycle);
- ledcWrite(medio.pwmChannel, initDutyCycle);
- ledcWrite(indice.pwmChannel, initDutyCycle);
- ledcWrite(anular.pwmChannel, initDutyCycle);
- ledcWrite(menique.pwmChannel, initDutyCycle);
- delay(100);
   ledcWrite(pulgar.pwmChannel, dutyCyclefull );
   ledcWrite(anular.pwmChannel, dutyCyclefull );
    ledcWrite(medio.pwmChannel, dutyCyclefull );
     ledcWrite(indice.pwmChannel, dutyCyclefull );
      ledcWrite(menique.pwmChannel, dutyCyclefull );
-  delay(500);
+ delay(500);
+ ledcWrite(pulgar.pwmChannel, initDutyCycle );
+  ledcWrite(anular.pwmChannel, initDutyCycle );
+   ledcWrite(medio.pwmChannel, initDutyCycle );
+    ledcWrite(indice.pwmChannel, initDutyCycle );
+     ledcWrite(menique.pwmChannel, initDutyCycle );
+ delay(100);
+   ledcWrite(pulgar.pwmChannel, dutyCyclefull );
+  ledcWrite(anular.pwmChannel, dutyCyclefull );
+   ledcWrite(medio.pwmChannel, dutyCyclefull );
+    ledcWrite(indice.pwmChannel, dutyCyclefull );
+     ledcWrite(menique.pwmChannel, dutyCyclefull );
+ delay(500);
+  ledcWrite(pulgar.pwmChannel, initDutyCycle );
+  ledcWrite(anular.pwmChannel, initDutyCycle );
+   ledcWrite(medio.pwmChannel, initDutyCycle );
+    ledcWrite(indice.pwmChannel, initDutyCycle );
+     ledcWrite(menique.pwmChannel, initDutyCycle );
+ delay(100);
   breakMotors(enable1Pin);
 }
 void mov_dedo_indice(int mov_intensidad, int mov_tipo,int mov_cantidad){
-    if(mov_tipo == 1){
-Serial.print("tipo de vibracion 2");
+    if(mov_tipo == 2){
+Serial.print("tipo de vibracion 1");
 for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
    menos_indice();
       enableMotors(enable1Pin);
@@ -375,7 +380,7 @@ for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
  breakMotors(enable1Pin);
 
 }
-  if(mov_tipo==2){
+  if(mov_tipo==1){
     Serial.print("tipo de vibracion 2");
 for(vibraciones=0 ; vibraciones<mov_cantidad; vibraciones++){
  menos_indice();
@@ -1014,17 +1019,17 @@ Serial.println(F("btn4:"));
        Serial.println(repuesta);
 }
 void milis_prueba(){
-   current_millis=millis();
-Serial.println(current_millis);
  unsigned long t_inicio=0;
   unsigned long t_inicio2=0; 
   unsigned long res;
-  int segundos=0;
-  if(current_millis>=(t_inicio2+1000)){
-    t_inicio2=current_millis;
-    segundos=current_millis/1000;
-    Serial.println(segundos);
-    }
+  
+ if (millis() - last_Case_Status_Millis > 35000){
+          last_Case_Status_Millis = millis();
+          res=millis()-  last_Case_Status_Millis;
+          Serial.println(res);
+          Serial.print(F("respuesta enviada "));
+           fsm_state = STATE_TRANSMIT_RESPUESTA;
+         }
   //t_inicio=current_millis;
   //Serial.println(t_inicio);
   //res= current_millis-t_inicio;
@@ -1050,7 +1055,7 @@ void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, String answ
   StaticJsonDocument<capacity> edin_json_response_doc;
   // create an object
   JsonObject object = edin_json_response_doc.to<JsonObject>();
-answer=repuesta;
+  answer=repuesta;
   Serial.println(repuesta); 
   object["idOperation"]   = idoperacion;
   object["gloveCode"]     = idguante;
@@ -1078,8 +1083,6 @@ answer=repuesta;
 
 //************************************************************************************************************************************* SETUP ***************************************************************************************
 void loop() {
-     
-  current_millis=millis();
   bateria_estado();
   switch(fsm_state){                                                                                         //Iniciamos el switch case
     
@@ -1109,8 +1112,8 @@ void loop() {
      btn_4.numberKeyPresses=0;
      
      // funciona_botones();
-      capturar_respuesta_de_botones(); 
-      //  milis_prueba();
+     capturar_respuesta_de_botones(); 
+      // milis_prueba();
                            
     break;
     
