@@ -721,7 +721,7 @@ void operation (byte* payloadrsp){
   tp.DotStar_Clear();
  //fsm_state = STATE_PREGUNTA;
   fsm_state = STATE_IDLE;
-  exit(0);
+ 
           
 }
 
