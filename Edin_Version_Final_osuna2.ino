@@ -21,7 +21,7 @@
 #include <PubSubClient.h>
 #include <TinyPICO.h>
 #include "settings.h"
-
+#include <stdlib.h>
 
 TinyPICO tp = TinyPICO();
 
@@ -46,10 +46,14 @@ uint8_t temp_read_interval = 1000;  // This is in milliseconds
 
 unsigned long lastMillis_BAT;
 unsigned long lastMillis_LED;
- unsigned long current_millis=0;
- int estado=digitalRead(14);
- unsigned long Last_Normal_Reset_Millis;                                                             //Variable para llevar conteo del tiempo desde la ultima publicacion
-unsigned long Last_Update_Millis; 
+unsigned long current_millis=0;
+int estado=digitalRead(14);
+//----------------------------------------------------------------------------------------------------Variables de Tiempo-----------------------------------
+unsigned long Last_Normal_Reset_Millis;                                                             //Variable para llevar conteo del tiempo desde la ultima publicacion
+unsigned long Last_Update_Millis;
+unsigned long millis_ahora_btnm_medio;
+unsigned long millis_anteriores_btn_medio = 0;
+unsigned long intervalo_largo_presion  = 30000UL;                                                    //cada cuanto imprime en que estado esta y si reciboi un mensaje 
 
 
 
@@ -92,6 +96,10 @@ void bateria_estado(){
    
   
 }
+//******************************************************************************Variables globales para guardar la respuesta de los dedos.
+int BTN_1, BTN_2, BTN_3, BTN_4 = 0; 
+//******************************************************************************Varibales de interrupcion
+bool scape = false;
 //******************************************************************************FSM Settings
 bool mesgrecv = false;
 static enum {STATE_IDLE, STATE_PREGUNTA, STATE_TRANSMIT_RESPUESTA} fsm_state = STATE_IDLE;
@@ -103,7 +111,7 @@ int motor_channel, motor_time, motor_effect;
 int idOperation       = 0;
 int idModule          = 0;
 int gloveCode         = 0;
-int answer            = 0;
+
 int vibraciones ;
 //******************************************************************************Variables de Botones. 
 struct boton {
@@ -120,51 +128,35 @@ boton btn_1 = {27, 0, false};
 void IRAM_ATTR isr_btn1(){
   btn_1.numberKeyPresses += 1;
   btn_1.pressed = true;
-   
+  BTN_1 = btn_1.numberKeyPresses;    
 }
 
 void IRAM_ATTR isr_btn2(){
   btn_2.numberKeyPresses += 1;
   btn_2.pressed = true;
+  BTN_2 = btn_2.numberKeyPresses;
 }
 
 void IRAM_ATTR isr_btn3(){
+  millis_ahora_btnm_medio= millis();
+  Serial.println(millis_ahora_btnm_medio);
+  Serial.println(millis_anteriores_btn_medio);
+  Serial.println (millis_ahora_btnm_medio - millis_anteriores_btn_medio);
   btn_3.numberKeyPresses += 1;
   btn_3.pressed = true;
-
- unsigned long t_inicio=0;
-  unsigned long t_inicio2=0;
-  unsigned long mili2;
-  unsigned long calculo;
-  Serial.println(estado);
-if(estado!=false){
-  t_inicio=current_millis;
-  Serial.println("Button press");
+  BTN_3 = btn_3.numberKeyPresses;
+  if((scape== false) && (millis_ahora_btnm_medio - millis_anteriores_btn_medio  > intervalo_largo_presion)){
+  Serial.println("cambiando bandera scape");
+  scape = true;
+  millis_anteriores_btn_medio = 0;    
   }
-  if(estado==1  && t_inicio>=30000){
-     Serial.println("Button long pressed");
-   Serial.println(F("enviando respuesta"));
-  }
-  
-
-   
-        
-     //     if(button_pressduration >=t_presionado){
-       //     Serial.println(F("enviando respuesta"));
-         //   String resultado=String("BTN_1")+btn_1.numberKeyPresses+String("BTN_2")+btn_2.numberKeyPresses+String("BTN_3")+btn_3.numberKeyPresses+String("BTN_4")+btn_4.numberKeyPresses;
-           // resultado=repuesta;
-            //Serial.println(repuesta);
-            //fsm_state = STATE_TRANSMIT_RESPUESTA;
-            
-            //}
-            
-
-    
+  millis_anteriores_btn_medio = millis_ahora_btnm_medio;
 }
 
 void IRAM_ATTR isr_btn4(){
   btn_4.numberKeyPresses += 1;
   btn_4.pressed = true;
+  BTN_4 = btn_4.numberKeyPresses;
 }
 
 
@@ -211,6 +203,23 @@ vmotor menique = {23, 4};; //GPIO32 canal 0
 
 #endif 
 //*******************************************************************************Funcion de PWM para puerto 32 y 33 del ESP32
+
+
+WiFiClient MQTTclient;
+PubSubClient client(mqttServer, mqttPort, callback, MQTTclient);
+
+
+long lastReconnectAttempt = 0;
+
+boolean reconnect() {
+  if (client.connect(clientId,"edin","edin")) {
+    client.subscribe(rebootTopic); // Subscribe to channel.
+    client.subscribe(operationTopic); // Subscribe to channel.
+    client.subscribe(cambioTopic); // Subscribe to channel.     
+  }
+  return client.connected();
+}
+
 void aPinMode(int pinNum, int pinDir) {
   // Enable GPIO32 or 33 as output. 
   if (pinNum == 32 || pinNum == 33) {
@@ -321,7 +330,6 @@ void rampDown(int down_motor_channel){
   breakMotors(enable1Pin);    
 }
 
-
 void motorClick(int motor_channel, int motor_time){
   enableMotors(enable1Pin);
   Serial.print("Click Motor channel:");
@@ -334,12 +342,14 @@ void motorClick(int motor_channel, int motor_time){
   ledcWrite(motor_channel, dutyCycleHalf);
   breakMotors(enable1Pin);
 }
+
 void vibra_resultado(){
   menos_pulgar();
   menos_medio();
   menos_indice();
   menos_menique();
   menos_anular();
+  
  enableMotors(enable1Pin);
   ledcWrite(pulgar.pwmChannel, dutyCyclefull );
   ledcWrite(anular.pwmChannel, dutyCyclefull );
@@ -367,6 +377,7 @@ void vibra_resultado(){
  delay(100);
   breakMotors(enable1Pin);
 }
+
 void mov_dedo_indice(int mov_intensidad, int mov_tipo,int mov_cantidad){
     if(mov_tipo == 2){
 Serial.print("tipo de vibracion 1");
@@ -717,9 +728,10 @@ void operation (byte* payloadrsp){
   }else{Serial.println(F("no hay pulgar"));}
   
   }
-
   tp.DotStar_Clear();
- fsm_state = STATE_PREGUNTA;       
+  client.publish(pongTopic, "finishhim!");
+  //fsm_state = STATE_PREGUNTA;
+  fsm_state = STATE_IDLE;          
 }
 
 
@@ -735,26 +747,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
     delay(5000);
     ESP.restart();                                                                                          //Emitir comando de reinicio para ESP32
   }
-  
+ 
   if (strcmp (operationTopic, topic) == 0) {                                                                 //verificar si el topico conicide con el Topico updateTopic[] definido en el archivo settings.h local
     operation(payload);                                                                                //enviar a la funcion handleUpdate el contenido del mensaje para su parseo.
-  }   
-}
-
-
-WiFiClient MQTTclient;
-PubSubClient client(mqttServer, mqttPort, callback, MQTTclient);
-
-
-long lastReconnectAttempt = 0;
-
-boolean reconnect() {
-  if (client.connect(clientId,"edin","edin")) {
-    client.subscribe(rebootTopic); // Subscribe to channel.
-    client.subscribe(operationTopic); // Subscribe to channel.    
   }
-  return client.connected();
+  
+  if (strcmp (cambioTopic, topic) == 0) {
+    Serial.println(F("ejecutando cambio a modo de respuesta"));
+    vibra_resultado();                                                                   //verificar si el topico conicide con el Topico cambio[] definido en el archivo settings.h local
+    fsm_state = STATE_PREGUNTA; //eenvia al estado de respoder 
+  }
 }
+
 
 //**********************************************************************************Get Chip ID*********************************************************************************
 void GloveID(){
@@ -798,7 +802,7 @@ void configuration_json (){
   }
 
 }
-
+//************************************************************************************************************SETUP***************************************************************************************************
 void setup() {
   Serial.begin(115200);
   //Setting up Button 1
@@ -912,7 +916,7 @@ void setup() {
   ledcWrite(menique.pwmChannel, initDutyCycle);
   delay(50);
     
-  //-----------------------------------------------------------------------Conecting to WIFI
+  //-------------------------------------------------------------------------------------------------------------------------------------------------Conecting to WIFI
   Serial.println("Attempting to connect...");
   WiFi.begin(ssid, password); // Connect to WiFi.
   if(WiFi.waitForConnectResult() != WL_CONNECTED) {
@@ -920,21 +924,18 @@ void setup() {
       tp.DotStar_SetPixelColor( 255, 255, 255);
       while(1) delay(100);
   }
-   
-  
-    
+      
   lastReconnectAttempt = 0;
-  Serial.println(F("Finalizing Setup"));                                                                  //enviamos un mensaje de depuracion
+  Serial.println(F("Finalizing Setup"));//enviamos un mensaje de depuracion
   configuration_json();
   tp.DotStar_Clear();
   fsm_state = STATE_IDLE; //inciar el estado del la maquina de stado finito
   // put your setup code here, to run once:
 }
-
-//----------------------------------------------------------------------------------------------------//Fundiones de Motores
-
+//****************************************************************************************************************************************************SETUP***************************************************************************************
 
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------Fundiones de Motores
 void motorPWM_0(int motor_channel){
   Serial.print("PWM  to 0 for Motor channel:");
   Serial.println(motor_channel);
@@ -1037,40 +1038,43 @@ void milis_prueba(){
  // Serial.println(res);
 
 }
-void capturar_respuesta_de_botones(){
-   Serial.println(F("signo igual ahora:"));
- vibra_resultado();
-  delay(15000);
-    repuesta=String("BTN_1")+btn_1.numberKeyPresses+String("BTN_2")+btn_2.numberKeyPresses+String("BTN_3")+btn_3.numberKeyPresses+String("BTN_4")+btn_4.numberKeyPresses;
-    Serial.println(F("respuesta de una"));
-  fsm_state = STATE_TRANSMIT_RESPUESTA;
 
+//----------------------------------------------------------------------------------------------------------------------Funcion dentro de estado capturar respuesta para evaluar cambio a envio de respuesta-----------------
+void capturar_respuesta_de_botones(){
+  Serial.println(F("funcion de capturar respuesta"));
+   
+  if (scape == true){
+    Serial.println(F("boton apachado en intervalo cambiando a enviando resp."));
+    scape = false;
+    fsm_state = STATE_TRANSMIT_RESPUESTA;
+  }
 }
 
-void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, String answer){
+//----------------------------------------------------------------------------------------------------------------------Funcion para publicar a respuesta al servidor----------------------------------------------------
+void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, int ans_BTN1, int ans_BTN2, int ans_BTN3, int ans_BTN4){
   //String response = ("{    "idOperation":12,    "gloveCode":"1941238-1458400",    "answer":2 })";
   const int capacity = JSON_OBJECT_SIZE(250);
   StaticJsonDocument<capacity> edin_json_response_doc;
   // create an object
   JsonObject object = edin_json_response_doc.to<JsonObject>();
-  answer=repuesta;
-  Serial.println(repuesta); 
   object["idOperation"]   = idoperacion;
   object["gloveCode"]     = idguante;
-  object["answer"]        = repuesta;
-  Serial.println(repuesta);
-      
+  
+  JsonObject answer = object.createNestedObject("answer");
+  answer["BTN_1"] = ans_BTN1;
+  answer["BTN_2"] = ans_BTN2;
+  answer["BTN_3"] = ans_BTN3;
+  answer["BTN_4"] = ans_BTN4;       
+  
   String output;
-  size_t n = serializeJson(object, output);                                                                  //SAve CPU cycles by calculatinf the size.
-
+  size_t n = serializeJson(object, output); //SAve CPU cycles by calculatinf the size.
   Serial.println(F("publishing device response to server:"));
   Serial.println(output);
-  Serial.println(repuesta);
   
-
   if (!client.connected()) {
     check_for_connection();
   }
+  
   if (client.publish(responseTopic, output.c_str(), n)) {
     Serial.println(F("device Publish ok"));
   }else {
@@ -1079,12 +1083,13 @@ void publicar_la_respuesta_a_servidor(int idoperacion, int idguante, String answ
   }
 }
 
-//************************************************************************************************************************************* SETUP ***************************************************************************************
+//************************************************************************************************************************************* LOOP ***************************************************************************************
 void loop() {
   bateria_estado();
-  switch(fsm_state){                                                                                         //Iniciamos el switch case
+  switch(fsm_state){ //Iniciamos el switch case
     
-    case STATE_IDLE:                                                                                        //Que debe hacer la maquina cuando esta en estado de IDLE
+    case STATE_IDLE: //Que debe hacer la maquina cuando esta en estado de IDLE
+         
          if (millis() - last_Case_Status_Millis > intervalo_Case_Status_Millis){
           last_Case_Status_Millis = millis();
           Serial.print(F("fsm_state: "));
@@ -1104,21 +1109,19 @@ void loop() {
     case STATE_PREGUNTA:
          Serial.println(F("Switch case state Pregunta: PREGUNTA"));
          delay(500);
-          btn_1.numberKeyPresses=0;
-   btn_2.numberKeyPresses=0;
-    btn_3.numberKeyPresses=0;
-     btn_4.numberKeyPresses=0;
-     
-     // funciona_botones();
-     capturar_respuesta_de_botones(); 
-      // milis_prueba();
-                           
+         btn_1.numberKeyPresses=0;
+         btn_2.numberKeyPresses=0;
+         btn_3.numberKeyPresses=0;
+         btn_4.numberKeyPresses=0;
+         // funciona_botones();
+         capturar_respuesta_de_botones(); 
+         // milis_prueba();                           
     break;
     
     case STATE_TRANSMIT_RESPUESTA:
-        Serial.println(F("Switch case state: RESPUESTA"));
+        Serial.println(F("Listo para enviar RESPUESTA"));
         //insertar a qui un While
-        publicar_la_respuesta_a_servidor(idOperation, gloveCode, repuesta);
+        publicar_la_respuesta_a_servidor(idOperation, gloveCode, BTN_1, BTN_2, BTN_3, BTN_4);
                 
         fsm_state = STATE_IDLE;
     break;
@@ -1128,3 +1131,4 @@ void loop() {
     break;
   }
 }
+//************************************************************************************************************************************* LOOP ***************************************************************************************
