@@ -4,9 +4,9 @@
 #define DEVICE_ID "EDIN"
 #define IZQUIERDA
 // Connection info.
-const char* ssid = "T22";
-const char* password =  "12345678";
-const char* mqttServer = "192.168.0.103";
+const char* ssid = "MANAGER";
+const char* password =  "";
+const char* mqttServer = "192.168.1.23";
 const int mqttPort = 1883;
 char clientId[] = "d:" ORG ":" DEVICE_TYPE ":" DEVICE_ID;                                                 //Variable de Identificacion de Cliente para servicio de MQTT
 const char* channelName = "testing_tinyPico";
@@ -17,7 +17,7 @@ const char responseTopic[]  = "iot/edin/evnt/testing_tinyPico";                 
 const char configTopic[]    = "iot/edin/mgmt/manage";                                            //Topico al cual se publican los mensajes de estado
 const char stillaliveTopic[]    = "iot/edin/device/update";                                         //Topico del cual se reciben las directrices de configuracion
 const char rebootTopic[]    = "iot/edin/mgmt/initiate/device/reboot";                           //Topico del cual se reciben los mensajes de re-inicio
-const char cambio[]="cambio";//cambia de estado pregunta a estado respuesta
+
 //--------Definicion de versionamiento-------------------------------------------
 
 String FirmwareVersion= "V1.00";                                                                 //Variable de version de Firmware

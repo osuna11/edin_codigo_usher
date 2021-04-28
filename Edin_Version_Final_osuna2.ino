@@ -21,7 +21,7 @@
 #include <PubSubClient.h>
 #include <TinyPICO.h>
 #include "settings.h"
-#include <stdlib.h>
+
 
 TinyPICO tp = TinyPICO();
 
@@ -719,10 +719,7 @@ void operation (byte* payloadrsp){
   }
 
   tp.DotStar_Clear();
- //fsm_state = STATE_PREGUNTA;
-  fsm_state = STATE_IDLE;
- 
-          
+ fsm_state = STATE_PREGUNTA;       
 }
 
 
@@ -738,19 +735,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     delay(5000);
     ESP.restart();                                                                                          //Emitir comando de reinicio para ESP32
   }
- 
+  
   if (strcmp (operationTopic, topic) == 0) {                                                                 //verificar si el topico conicide con el Topico updateTopic[] definido en el archivo settings.h local
     operation(payload);                                                                                //enviar a la funcion handleUpdate el contenido del mensaje para su parseo.
-  }  
-    if (strcmp (cambio, topic) == 0) {
-     Serial.println(F("CAMBIANDO A PREGUTNAR.")); 
-         vibra_resultado();                                                                   //verificar si el topico conicide con el Topico cambio[] definido en el archivo settings.h local
-       fsm_state = STATE_PREGUNTA;                                                                             //eenvia al estado de respoder
-  }  
-  
-
-   
-
+  }   
 }
 
 
@@ -1051,6 +1039,7 @@ void milis_prueba(){
 }
 void capturar_respuesta_de_botones(){
    Serial.println(F("signo igual ahora:"));
+ vibra_resultado();
   delay(15000);
     repuesta=String("BTN_1")+btn_1.numberKeyPresses+String("BTN_2")+btn_2.numberKeyPresses+String("BTN_3")+btn_3.numberKeyPresses+String("BTN_4")+btn_4.numberKeyPresses;
     Serial.println(F("respuesta de una"));
@@ -1096,7 +1085,6 @@ void loop() {
   switch(fsm_state){                                                                                         //Iniciamos el switch case
     
     case STATE_IDLE:                                                                                        //Que debe hacer la maquina cuando esta en estado de IDLE
-         
          if (millis() - last_Case_Status_Millis > intervalo_Case_Status_Millis){
           last_Case_Status_Millis = millis();
           Serial.print(F("fsm_state: "));
